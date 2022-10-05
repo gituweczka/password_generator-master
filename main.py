@@ -2,9 +2,13 @@ from tkinter import *
 from random import choice, randint, shuffle
 from tkinter import messagebox
 import json
+
+
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def generate_password():
-    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',
+               'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+               'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     symbols = ['!', '#', '$', '%', '&', '(', ')', '*', '+']
 
@@ -20,6 +24,23 @@ def generate_password():
     password_entry.insert(0, password)
 
 
+# ---------------------------- SEARCH FOR A WEBSITE ------------------------------- #
+def find_password():
+    website = website_entry.get()
+    try:
+        with open("data.json", "r") as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Information not found", message="No Data File Found")
+    else:
+        if website in data:
+            email = data[website]["email"]
+            password = data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email: {email}\nPassword: {password}")
+        else:
+            messagebox.showinfo(title="Page not found", message="No details for the website exist")
+
+
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 
@@ -32,21 +53,29 @@ def save():
             "email": email,
             "password": password,
 
-    }}
+        }
+    }
 
     if len(website) == 0 or len(password) == 0:
-        messagebox.showinfo(title="Invalid data warning!", message="Please make sure you didn't leave any fields empty!")
+        messagebox.showinfo(title="Invalid data warning!",
+                            message="Please make sure you didn't leave any fields empty!")
     else:
-        with open("data.json", mode="r") as data_file:
-            # Reading old data
-            data = json.load(data_file)
+        try:
+            with open("data.json", mode="r") as data_file:
+                # Reading old data
+                data = json.load(data_file)
+
+        except FileNotFoundError:
+            with open("data.json", "w") as data_file:
+                json.dump(new_data, data_file, indent=4)
+        else:
             # Updating the data
             data.update(new_data)
 
-        with open("data.json", mode="w") as data_file:
-            # Saving updated piece of data
-            json.dump(data, data_file, indent=4)
-
+            with open("data.json", mode="w") as data_file:
+                # Saving updated piece of data
+                json.dump(data, data_file, indent=4)
+        finally:
             website_entry.delete(first=0, last=END)
             password_entry.delete(first=0, last=END)
 
@@ -87,5 +116,8 @@ gen_password.grid(column=2, row=3)
 
 add_button = Button(text="Add", width=35, command=save)
 add_button.grid(column=1, row=4, columnspan=2)
+
+search_button = Button(text="Search", command=find_password)
+search_button.grid(column=2, row=1)
 
 window.mainloop()
